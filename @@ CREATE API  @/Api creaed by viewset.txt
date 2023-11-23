@@ -1,0 +1,228 @@
+====>       ✅THERE ARE 6 MAIN WAY TO CREATE API ❤️  <=====
+
+
+1.👉FIRSTLY CREATE ==> NEW FOLDER NAME ""API"" inside THE **APPS**
+2.👉 inside ""API"" FOLDER ❤️
+                     ====>urls.py
+                     ====>views.py
+                     ====>serializer.py
+
+
+
+3.👉**APPS**  ==>> models
+  >==>                             ⤵️CODE⤵️                                  <==<
+
+
+from django.db import models
+
+# Create your models here.
+
+
+
+class Company(models.Model):
+    company_id=models.AutoField(primary_key=True)
+    name= models.CharField(max_length=50)
+    location=models.CharField(max_length=50)
+    about=models.TextField()
+    type=models.CharField(max_length=100,choices=
+                          (('IT','IT'),
+                           ('Non IT','Non IT'),
+                           ("Mobiles Phones",'Mobile Phones')
+                           ))
+    added_date=models.DateTimeField(auto_now=True)
+    active=models.BooleanField(default=True)
+    
+    def __str__(self):
+        return self.name +'--'+ self.location
+    
+    
+    
+# Employee Model
+class Employee(models.Model):
+    name=models.CharField(max_length=100)
+    email=models.CharField(max_length=50)
+    address=models.CharField(max_length=200)
+    phone=models.CharField(max_length=10)
+    about=models.TextField()
+    position=models.CharField(max_length=50,choices=(
+        ('Manager','manager'),
+        ('Software Developer','sd'),
+        ('Project Leader','pl')
+    ))
+    
+    company=models.ForeignKey(Company, on_delete=models.CASCADE)
+
+====================================================================================================================================================================================>>
+
+
+
+👉PROJECT ==>> URLS.PY 
+
+  >==>                             ⤵️CODE⤵️                                  <==<
+
+
+from django.contrib import admin
+from django.urls import path,include
+
+urlpatterns = [
+
+    path('admin/', admin.site.urls),
+    path('', include('myapi.urls')),                      #➡️ APP LINK ⬅️
+    path('api/v1/', include('myapi.API.urls'))            #➡️ API LINK ⬅️
+
+]
+
+=========================================================================================>>
+
+👉""API""==>>  URLS.PY
+
+  >==>                             ⤵️CODE⤵️                                  <==<
+
+from django.contrib import admin
+from django.urls import path,include
+from myapi.API.views import CompanyViewSet,EmployeeViewSet
+
+# API ==> CREATED API BY " VIEWSET "
+
+from rest_framework import routers
+
+router = routers.DefaultRouter()
+router.register(r'companies',CompanyViewSet)
+router.register(r'employees',EmployeeViewSet)
+
+urlpatterns = [
+    path('',include(router.urls))
+]
+
+===================================================================================================================================================================================>>>
+
+
+👉""API""==>>  SERIALIZER.PY
+
+
+  >==>                             ⤵️CODE⤵️                                  <==<
+
+
+from rest_framework import serializers
+from myapi.models import Company,Employee
+
+
+
+#create serializers here
+class CompanySerializer(serializers.HyperlinkedModelSerializer):
+    company_id=serializers.ReadOnlyField()
+    class Meta:
+        model=Company
+        fields="__all__"
+        
+        
+        
+class EmployeeSerializer(serializers.HyperlinkedModelSerializer):
+    id=serializers.ReadOnlyField()    
+    class Meta:
+        model=Employee
+        fields="__all__"
+
+
+=======================================================================================================================================================================================================>>>
+
+
+
+👉""API""==>>  VIEWS.PY
+
+  >==>                             ⤵️CODE⤵️                                  <==<
+
+
+from django.shortcuts import render
+# API ==> CREATED API BY " VIEWSET "
+
+from rest_framework import viewsets
+from myapi.models import Company ,Employee                                             # ➡️import models⬅️
+from myapi.API.serializers import CompanySerializer,EmployeeSerializer                 # ➡️import serializer⬅️
+
+# API particular by id
+from rest_framework.decorators import action
+from rest_framework.response import Response
+
+# Create your views here.
+class CompanyViewSet(viewsets.ModelViewSet):
+    queryset = Company.objects.all()
+    serializer_class = CompanySerializer
+
+   #companies/{companyId}/emplyees
+    @action(detail=True,methods=['get'])
+    def employees(self,request,pk=None):   
+        try:                
+            company=Company.objects.get(pk=pk)
+            emps=Employee.objects.filter(company=company)
+            emps_serializer=EmployeeSerializer(emps,many=True,context={'request':request})
+            return Response(emps_serializer.data)
+        except Exception as e:
+            print(e)
+            return Response({
+                'message':'Company might not exists !! Error'
+            })
+
+
+
+
+class EmployeeViewSet(viewsets.ModelViewSet):
+    queryset = Employee.objects.all()
+    serializer_class = EmployeeSerializer
+
+
+========================>>>>>>>>>>>>>>>TEST THE API<<<<<<<<<<<<<<<<==================================
+===============================================================================================================================================================================================================================================================================================================
+
+
+========================>>>>>>>>>>>>>>>❤️⤵️NOTES⤵️❤️<<<<<<<<<<<<<<<<===========================
+
+
+🎉🎉🎉🎉🎉 SERIALIZER CREATED ACCORDING  >>====>> MODEL OF DJANGO PROJECT🎉🎉🎉🎉🎉
+
+
+
+
+# ❤️Authentication of API >==> Api/views.py ❤️
+#>==> API session Authentication <===<
+from rest_framework.authentication import SessionAuthentication
+from rest_framework.permissions import IsAuthenticatedOrReadOnly
+
+class CompanyViewSet(viewsets.ModelViewSet):
+    queryset = Company.objects.all()
+    serializer_class = CompanySerializer
+    authentication_classes =[SessionAuthentication]
+    permission_classes =[IsAuthenticatedOrReadOnly]
+
+
+
+>==========> SETTING.PY <<===============<
+
+# ❤️Disabling browsable API ❤️
+
+REST_FRAMEWORK = {
+  
+     'DEFAULT_RENDERER_CLASSES': (
+        'rest_framework.renderers.JSONRenderer',
+    )
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
+    
